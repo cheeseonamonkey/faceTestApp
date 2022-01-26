@@ -2,16 +2,113 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <title>Vanilla JavaScript App</title>
+    <meta charset="utf-8">
+    <title></title>
+    <link href="style.css" rel="stylesheet" />
 </head>
 
 <body>
-  <main>
-    <h1>Vanilla JavaScript App</h1>
-  </main>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <h2>Testing face stuff</h2>
+
+    <h4>Example test image URLs:</h4>
+    <ul>
+        <li>https://upload.wikimedia.org/wikipedia/commons/c/c3/RH_Louise_Lillian_Gish.jpg</li>
+        <li>https://yoursightmatters.com/wp-content/uploads/2018/01/WhatDoesTheFutureOfVisionLookLike-618519918.jpg</li>
+        <li>https://img.thedailybeast.com/image/upload/v1497753933/170618-schager-errol-morris-hero_xyeor2.jpg</li>
+        <li>https://image.freepik.com/free-photo/portrait-young-man-walking-with-thoughtfully-classic-bicycle-city-streets_158595-4548.jpg</li>
+
+    </ul>
+
+
+    <script>
+        //globals:
+        const body = document.getElementsByTagName("body")[0];
+
+        //my azure stuff:  
+        const endpointUrl = 'https://facetest134.cognitiveservices.azure.com/face/v1.0/detect/';
+        const apiKey = 'b5d14bf06851491ab561526d6aaf03cf';
+
+
+
+        //=====
+        //ui:
+
+        //txtImgUrl
+        let txtImgUrl = document.createElement('input', {
+            type: 'text'
+        });
+        txtImgUrl.placeholder = "URL of the image";
+        body.appendChild(txtImgUrl);
+
+        // (new lines)
+        body.appendChild(document.createElement('br'));
+
+        //btnGetFace
+        let btnGetFace = document.createElement("button");
+        btnGetFace.innerHTML = "Get face from image";
+        body.appendChild(btnGetFace);
+
+        btnGetFace.addEventListener('click', getFace)
+
+        // (new lines)
+        body.appendChild(document.createElement('br'));
+        body.appendChild(document.createElement('br'));
+
+        //output img
+        let cnvFromUrl = document.createElement("canvas", {
+            id: "cnvFromUrl",
+            height: "300px",
+            width: "300px"
+        });
+        body.appendChild(cnvFromUrl);
+        let cnvFromUrlContext = cnvFromUrl.getContext('2d');
+
+
+        async function getFace() {
+
+            //body:
+            let rawUrl = txtImgUrl.value;
+
+            let exampleBody = '{"url":' +
+                '"' + rawUrl + '"' +
+                '}';
+
+            //headers:
+            let exampleHeaders = new Headers();
+            exampleHeaders.append('Content-Type', 'application/json');
+            exampleHeaders.append('Ocp-Apim-Subscription-Key', 'b5d14bf06851491ab561526d6aaf03cf');
+
+
+            let faceResponse = await fetch(endpointUrl, {
+                    method: 'POST',
+                    body: exampleBody,
+                    headers: exampleHeaders
+                })
+                .then((response) => {
+                    return response.json();
+                });
+
+            //returns an array!
+            let faceRect = faceResponse[0].faceRectangle;
+            console.log(faceRect);
+
+            let imgFromUrl = new Image();
+            imgFromUrl.src = rawUrl;
+
+            imgFromUrl.onload = function() {
+                cnvFromUrl.width = imgFromUrl.width;
+                cnvFromUrl.height = imgFromUrl.height;
+
+                cnvFromUrlContext.drawImage(imgFromUrl, 0, 0);
+
+                cnvFromUrlContext.strokeRect(faceRect.left, faceRect.top, faceRect.width, faceRect.height);
+
+            }
+
+        }
+    </script>
 </body>
 
 </html>
